@@ -81,6 +81,22 @@ namespace EnemyRandomizerMod
             //iterate over the loaded scenes
             for( int i = 0; i < UnityEngine.SceneManagement.SceneManager.sceneCount; ++i )
             {
+                if (i % 3 == 0)
+                {
+                    IEnumerator UnloadAssets()
+                    {
+                        yield return Resources.UnloadUnusedAssets();
+                    }
+                    
+                    // Avoid over-allocationg memory by forcing a GC
+                    if (GameManager.instance != null)
+                    {
+                        GameManager.instance.StartCoroutine(UnloadAssets());
+                    }
+
+                    GC.Collect();
+                }
+                
                 Scene sceneToLoad = UnityEngine.SceneManagement.SceneManager.GetSceneAt(i);
 
                 if( sceneToLoad.name == Menu.RandomizerMenu.MainMenuSceneName )
@@ -428,14 +444,14 @@ namespace EnemyRandomizerMod
         {
             try
             {
-                Dev.Log( "Loading scene data: " + GetSceneToLoadFromRandomizerData( currentDatabaseIndex ) );
-                LoadSceneData();
-                
-                DatabaseLoadProgress = currentDatabaseIndex / (float)(EnemyRandomizerDatabase.EnemyTypeScenes.Count - 1);
-                Dev.Log( "Loading Progress: " + DatabaseLoadProgress );
+                Dev.Log ("Loading scene data: " + GetSceneToLoadFromRandomizerData (currentDatabaseIndex));
+                LoadSceneData ();
 
-                Dev.Log( "Unloading scene: " + GetSceneToLoadFromRandomizerData( currentDatabaseIndex ) );
-                UnityEngine.SceneManagement.SceneManager.UnloadScene( GetSceneToLoadFromRandomizerData( currentDatabaseIndex ) );
+                DatabaseLoadProgress = currentDatabaseIndex / (float)(EnemyRandomizerDatabase.EnemyTypeScenes.Count - 1);
+                Dev.Log ("Loading Progress: " + DatabaseLoadProgress);
+
+                Dev.Log ("Unloading scene: " + GetSceneToLoadFromRandomizerData (currentDatabaseIndex));
+                UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync (GetSceneToLoadFromRandomizerData (currentDatabaseIndex));
             }
             catch( Exception e )
             {

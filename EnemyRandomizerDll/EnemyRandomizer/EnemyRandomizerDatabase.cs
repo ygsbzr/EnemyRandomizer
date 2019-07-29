@@ -480,6 +480,13 @@ namespace EnemyRandomizerMod
              ,397
              ,366 //white palace
              ,383 //path of pain
+             ,445 //pure vessel
+             ,452 //nailmasters
+             ,455 //paintmaster
+             ,457 //abs rad
+             ,458 //sly
+             ,485 //winged nosk
+             ,479 //eternal ordeal
         };
 
         public List<int> scenesLoaded = new List<int>();
@@ -650,7 +657,12 @@ namespace EnemyRandomizerMod
             "Dream Mage Lord Phase2",
             "Colosseum_Flying_Sentry",
             "Colosseum_Armoured_Mosquito",
-            "Radiance"
+            "Radiance",
+            "Absolute Radiance",
+            "Zote Balloon Ordeal",
+            "Ordeal Zoteling",
+            "Hornet Nosk",
+            "Zote Salubra"
         };
 
         public static List<string> groundEnemyTypeNames = new List<string>()
@@ -752,7 +764,16 @@ namespace EnemyRandomizerMod
             "Lost Kin",
             "White Defender",
             "Grey Prince",
-            "Hollow Knight Boss"
+            "Hollow Knight Boss",
+            "HK Prime",
+            "Oro",
+            "Mato",
+            "Sheo Boss",
+            "Sly Boss",            
+            "Zote Crew Tall",
+            "Zote Crew Normal",
+            "Zote Crew Fat",
+            "Colosseum Grass Hopper"
         };
 
         public static List<string> smallEnemyTypeNames = new List<string>()
@@ -887,7 +908,10 @@ namespace EnemyRandomizerMod
             "Big Bee",
             "Zote Balloon",
             "Zoteling",
-            "Crawler"
+            "Crawler",
+            "Ordeal Zoteling",
+            "Zote Crew Normal",
+            "Zote Balloon Ordeal"
         };
 
         public static List<string> mediumEnemyTypeNames = new List<string>()
@@ -952,7 +976,13 @@ namespace EnemyRandomizerMod
             "Royal Gaurd",
             "Zombie Hive",
             "Bee Stinger",
-            "Big Bee"
+            "Big Bee",
+            "Zote Thwomp",
+            "Zote Crew Tall",
+            "Zote Crew Fat",
+            "Zote Fluke",
+            "Sly Boss",
+            "Colosseum Grass Hopper"
         };
 
         public static List<string> bigEnemyTypeNames = new List<string>()
@@ -1020,7 +1050,13 @@ namespace EnemyRandomizerMod
             "White Defender",
             "Grey Prince",
             "Radiance",
-            "Hollow Knight Boss"
+            "Hollow Knight Boss",
+            "HK Prime",
+            "Oro",
+            "Mato",
+            "Sheo Boss",
+            "Absolute Radiance",
+            "Hornet Nosk"
         };
 
         //doubled the occurence of some types in here to even out the replacements
@@ -1041,7 +1077,8 @@ namespace EnemyRandomizerMod
             "Mushroom Turret",
             "Plant Turret Right",
             "Plant Turret Right",
-            "Mushroom Turret"
+            "Mushroom Turret",
+            "Zote Turret"
         };
 
 
@@ -1092,7 +1129,17 @@ namespace EnemyRandomizerMod
             "Radiance",
             "Pigeon",
             "Hollow Knight Boss",
-            "Zote Boss"//33 (BOSS???)
+            "Zote Boss",//33 (BOSS???),
+            "Shade Sibling",
+            "HK Prime",
+            "Absolute Radiance",
+            "Zote Thwomp",
+            "Zote Turret",
+            "Zote Fluke",
+            "Spider Flyer", // weaver - turns invisible
+            "Lost Kin",
+            "Nightmare Grimm Boss", // totally breaks it
+            "Grimm Boss" // as above
         };
 
 
@@ -1118,7 +1165,19 @@ namespace EnemyRandomizerMod
             "Mantis Traitor Lord",
             "Hollow Knight Boss",
             "Pigeon",
-            "Zote Boss"//33 (BOSS???) //TODO: find a way to check if zote is dead
+            "Zote Boss",//33 (BOSS???) //TODO: find a way to check if zote is dead
+            "Shade Sibling",
+            "HK Prime",
+            "Absolute Radiance",
+            "Zote Thwomp",
+            "Zote Turret",
+            "Zote Fluke",
+            "Spider Flyer", // weaver - turns invisible
+            "Mage",
+            "Electric Mage",
+            "Lost Kin",
+            "Nightmare Grimm Boss", // totally breaks it
+            "Grimm Boss" // as above
         };
 
         /*
@@ -1248,7 +1307,14 @@ namespace EnemyRandomizerMod
             "White Defender",
             "Grey Prince",
             "Radiance",
-            "Hollow Knight Boss"
+            "Hollow Knight Boss",
+            "HK Prime",
+            "Absolute Radiance",
+            "Oro",
+            "Mato",
+            "Sheo Boss",
+            "Sly Boss",
+            "Hornet Nosk"
 
             //"Centipede Hatcher",
             //"Gorgeous Husk", //82 (for fun)
@@ -1288,6 +1354,35 @@ namespace EnemyRandomizerMod
 
         //    //"PLACEHOLDER"
         //};
+
+        public static List<string> godmasterEnemyTypeNames = new List<string> 
+        {
+            "HK Prime",
+            "Oro",
+            "Mato",
+            "Sheo Boss",
+            "Absolute Radiance",
+            "Sly Boss",
+            "Hornet Nosk",
+            "Zote Turret",
+            "Zote Salubra",
+            "Ordeal Zoteling",
+            "Zote Fluke",
+            "Zote Crew Normal",
+            "Zote Crew Fat",
+            "Zote Balloon Ordeal",
+            "Zote Crew Tall",
+            "Zote Thwomp"
+        };
+
+        // this will make the given enemies in the given scene un-changeable. Use to avoid event-breaking changes such as the Shrumal Ogres in Fungal Wastes.
+        public static Dictionary<int, List<string>> exemptEnemyTypeNamesInScene = new Dictionary<int, List<string>>
+        {
+            { -1, new List<string> { "Zombie Fungus A" } }, // shrumal ogres
+            { 32, new List<string> { "Zote Boss" } }, // colosseum 1 - zote
+            { 33, new List<string> { "Grub Mimic" } }, // colosseum 2 - grub mimic
+            { 34, new List<string> { "Baby Centipede", "Mantis Traitor Lord" } }, // colosseum 3 - garpede? and traitor lord??? (I don't think we need these, but Kerr put them in so I'm not removing them)
+        };
     }
 }
 

@@ -1,72 +1,47 @@
 # EnemyRandomizer
+A working version of Kerr1291's Enemy Randomizer mod for Hollow Knight.
 
-https://github.com/Kerr1291/EnemyRandomizer
+## Installation
+If you can find it, move the EnemyRandomizer.dll file into `<Path-To-Hollow Knight>\Hollow Knight\hollow_knight_Data\Managed\Mods\`.
 
-This is a mod for [Hollow Knight](http://hollowknight.com/) that randomizes the Enemies.
+Otherwise, either:
 
-This mod is still in the early stages of development! Use at your own risk!
+Download the mod installer from the HK discord and use that to install it, although it may not be up-to-date.
 
-## Other mods that pair well with this
+OR
 
-RandomizerMod ( https://github.com/MyEyes/RandomizerMod ) - Randomizes Spells and Charms in the game
+Find the .dll file on the modding drive from the HK discord.
 
-Debug Mod ( https://github.com/seanpr96/DebugMod ) - A life saver in case anything breaks, also fun to have around.
+This mod requires both the modding API and ModCommon, both of which can be found on the discord.
 
-## Example of what this mod does
+## Usage
+Click the [LOAD ENEMY RANDOMIZER] button in the top-left of the main menu to load the randomizer.
 
-https://clips.twitch.tv/HeadstrongThoughtfulEmuSoonerLater
+By default, the randomizer will change each enemy type into another random type, and this will remain constant between rooms. This behaviour can be changed, as below.
 
-https://clips.twitch.tv/CrazyFamousSheepShadyLulu
+## Settings
+ - Chaos Mode - Each enemy will be fully randomized with no restrictions when you enter a new room. Enemies of the same type can be changed into different things.
+ - Room Mode - Each enemy type will be re-randomized each time you enter a new room, but it will still change every enemy of that type.
+ - Randomize Geo - Randomizes amount of geo dropped by enemies
+ - Custom Enemies - Allows custom enemies to be added to the randomizer
+ - Godmaster Enemies - Allows enemies from the Godmaster expansion to be included in the randomizer. This includes Absolute Radiance, Pure Vessel, Winged Nosk, Mato, Oro, Sheo, Sly and Eternal Ordeal enemies.
+ - (Cheat) No Clip - Turns on no clip - to be used in case of a bug that blocks progression by normal means, e.g. a door not opening after a boss has been killed.
 
-https://clips.twitch.tv/SingleObliqueMomNotLikeThis
+## Known Bugs
+Certain bosses will not spawn if they have been killed elsewhere, such as Flukemarm, but their item drops will still function as normal and be found in the empty boss arena.
 
-https://clips.twitch.tv/PreciousCleverPeanutGOWSkull
+Trial of the Fool is broken - don't do it.
 
-https://clips.twitch.tv/RichDeterminedCakeMingLee
+If you have any other problems, feel free to ping me (@Fireball248) on the HK discord.
 
-Twitch clips courtesy of 56 from #modding.
+## Development
+If you load the project file into an IDE, you will get many missing reference errors. To fix, add `<Path-To-Hollow Knight>\Hollow Knight\hollow_knight_Data\Managed\` to the project's references.
 
-## Release Installation
+If you still have issues, ensure that the modding API and ModCommon are installed in your HK directory.
 
-Copy the "EnemyRandomizer.dll" to Folder: `<Path-To-Hollow Knight>\Hollow Knight\hollow_knight_Data\Managed\Mods`
+## Credits
+Original Code - Kerr1291 (https://github.com/Kerr1291/EnemyRandomizer)
 
-OR 
+Fixes and Current Developer - Fireball248
 
-Go to https://github.com/Kerr1291/Crossroads and download and run the installer :)
-
-## Dependencies
-
-This mod depends on the Modding API by Seanpr and Firzen, which is a modified `Assembly-CSharp.dll`.
-There is currently no public download link for the Modding API.
-For now, check the pinned messages in the #modding channel in the Hollow Knight discord.
-
-## Development setup
-
-After installing the Modding API, open this solution in Visual Studio.
-You will get many errors for missing assembly references.
-Here's how to resolve them:
-
-1. Right click the **EnemyRandomizer** project in the Solution Explorer.
-2. Properties
-3. Referenced Paths
-4. Folder: `<Path-To-Hollow Knight>\Hollow Knight\hollow_knight_Data\Managed\`
-5. Add Folder
-
-Now if you open up EnemyRandomizer.cs, you should see no errors.
-
-Note: install_built.bat is currently set to run as a post-build step. Open the file and configure "MOD_DEST" to automatically copy in the dll to your game's mod path after building.
-
-### Debugging
-
-Printf-style debugging is done through calls to `Modding.ModHooks.ModLog()`,
-which outputs text to `%APPDATA%\..\LocalLow\Team Cherry\Hollow Knight\ModLog.txt`.
-
-There is currently no easy way to use the Visual Studio debugger while Hollow Knight is running.
-Please let someone know if you manage to get this working, and we'll update these instructions.
-
-#### Thanks
-
-Special thanks to 56 ( https://www.twitch.tv/5fiftysix6 ) for doing a TON of play testing and bug reporting for me. The help has been huge and really accelerated the development.
-
-Big thanks to the RandomizerMod ( https://github.com/MyEyes/RandomizerMod ) which the code of which I used as a starting point/inspiration to make this mod.
-Additional thanks to everyone at #modding in hollow knight discord for their hard work. The modding API is fantastic.
+Fixes to the Modding API that allow this to work with certain other mods - 56 (https://www.twitch.tv/5fiftysix6)

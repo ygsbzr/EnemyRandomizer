@@ -69,12 +69,14 @@ namespace EnemyRandomizerMod.Menu
             UnityEngine.SceneManagement.SceneManager.sceneLoaded -= SceneLoaded;
             UnityEngine.SceneManagement.SceneManager.sceneLoaded += SceneLoaded;
 
+            SceneLoaded (UnityEngine.SceneManagement.SceneManager.GetActiveScene (), LoadSceneMode.Single);
+
             Dev.Log( "Menu Loaded!" );
         }
 
         public void AddLoadingButtonCallback( UnityEngine.Events.UnityAction loadingCallback )
         {
-            if( loadingButton == null )
+            if ( loadingButton == null )
                 return;
 
             Dev.Where();
@@ -167,7 +169,7 @@ namespace EnemyRandomizerMod.Menu
             loadingButtonText.text = "[Load Enemy Randomizer]";
             loadingButtonText.color = Color.white;
             loadingButtonText.horizontalOverflow = HorizontalWrapMode.Overflow;
-            loadingButtonText.verticalOverflow = VerticalWrapMode.Overflow;
+            loadingButtonText.verticalOverflow = VerticalWrapMode.Overflow;        
 
             Button b = loadingButton.AddComponent<Button>();
             b.targetGraphic = loadingButtonText;
@@ -183,9 +185,12 @@ namespace EnemyRandomizerMod.Menu
             b.colors = cb;
             b.onClick.AddListener( LoadingButtonClicked );
 
-            AddLoadingButtonCallback( EnemyRandomizerLoader.Instance.BuildEnemyRandomizerDatabase );
-
-
+            try {
+                AddLoadingButtonCallback (EnemyRandomizerLoader.Instance.BuildEnemyRandomizerDatabase);
+            }
+            catch (Exception e) {
+                Dev.LogError (e.ToString());
+            }
 
             loadingBar = GameObject.Instantiate( rootUIManager.gameObject.FindGameObjectInChildren( "StartGameButton" ) );
             loadingBar.transform.SetParent( rootUIManager.gameObject.FindGameObjectInChildren( "MainMenuScreen" ).transform );
@@ -619,7 +624,8 @@ namespace EnemyRandomizerMod.Menu
                                             EnemyRandomizer.Instance.RandomizeGeo = false;
                                         if( optionName == EnemyRandomizerSettingsVars.CustomEnemies )
                                             EnemyRandomizer.Instance.CustomEnemies = false;
-
+                                        if (optionName == EnemyRandomizerSettingsVars.GodmasterEnemies)
+                                            EnemyRandomizer.Instance.GodmasterEnemies = false;
 
                                     }
                                     else
@@ -637,6 +643,8 @@ namespace EnemyRandomizerMod.Menu
                                             EnemyRandomizer.Instance.RandomizeGeo = true;
                                         if( optionName == EnemyRandomizerSettingsVars.CustomEnemies )
                                             EnemyRandomizer.Instance.CustomEnemies = true;
+                                        if (optionName == EnemyRandomizerSettingsVars.GodmasterEnemies)
+                                            EnemyRandomizer.Instance.GodmasterEnemies = true;
                                     }
                                 }
 

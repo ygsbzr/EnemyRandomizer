@@ -20,7 +20,7 @@ namespace EnemyRandomizerMod
         EnemyRandomizerDatabase database;
         EnemyRandomizerLogic logic;
 
-        string fullVersionName = "0.2.x (in development)";
+        string fullVersionName = "0.3.0";
         string modRootName = "RandoRoot";
 
         //public const bool kmode = true;
@@ -143,6 +143,19 @@ namespace EnemyRandomizerMod
             }
         }
 
+        //if godmaster enemies is enabled, then we are allowed to use bosses from godmaster such as sly or pure vessel
+        bool godmasterEnemies = false;
+        public bool GodmasterEnemies {
+            get {
+                return godmasterEnemies;
+            }
+            set {
+                if (GlobalSettings != null)
+                    GlobalSettings.GodmasterEnemies = value;
+                godmasterEnemies = value;
+            }
+        }
+
         public override void Initialize()
         {
             if(Instance != null)
@@ -157,16 +170,16 @@ namespace EnemyRandomizerMod
 
             Log("Enemy Randomizer Mod initializing!");
 
-            SetupDefaulSettings();
+            SetupDefaultSettings();
 
             UnRegisterCallbacks();
             RegisterCallbacks();
 
             //create the database that will hold all the loaded enemies
-            if( database == null )
-                database = new EnemyRandomizerDatabase();
+            if (database == null)
+                database = new EnemyRandomizerDatabase ();
 
-            if( logic == null )
+            if ( logic == null )
                 logic = new EnemyRandomizerLogic( database );
 
             //create the loader which will handle loading all the enemy types in the game
@@ -180,8 +193,8 @@ namespace EnemyRandomizerMod
             database.Setup();
             loader.Setup();
             menu.Setup();
-                        
-            ContractorManager.Instance.StartCoroutine( DebugInput() );
+
+            //ContractorManager.Instance.StartCoroutine (DebugInput ());
         }
 
         //bool suspended = false;
@@ -384,7 +397,7 @@ namespace EnemyRandomizerMod
             return go;
         }
 
-        void SetupDefaulSettings()
+        void SetupDefaultSettings()
         {
             string globalSettingsFilename = Application.persistentDataPath + ModHooks.PathSeperator + GetType().Name + ".GlobalSettings.json";
 
@@ -417,6 +430,7 @@ namespace EnemyRandomizerMod
                 RoomRNG = true;
                 RandomizeGeo = false;
                 CustomEnemies = false;
+                GodmasterEnemies = false;
             }
 
             OptionsMenuSeed = GameRNG.Randi();
@@ -503,8 +517,6 @@ namespace EnemyRandomizerMod
             EnableEnemyRandomizer();
         }
 
-        Roguelike roguelike;
-
         void EnableEnemyRandomizer()
         {
             Dev.Where();
@@ -517,9 +529,7 @@ namespace EnemyRandomizerMod
             RoomRNG = GlobalSettings.RNGRoomMode;
             RandomizeGeo = GlobalSettings.RandomizeGeo;
             CustomEnemies = GlobalSettings.CustomEnemies;
-
-            roguelike = new Roguelike(); 
-            GameManager.instance.StartCoroutine( roguelike.Init( GameSeed ) );
+            GodmasterEnemies = GlobalSettings.GodmasterEnemies;
              
             //if( kmode )
             //{
