@@ -1378,7 +1378,7 @@ namespace EnemyRandomizerMod
         // this will make the given enemies in the given scene un-changeable. Use to avoid event-breaking changes such as the Shrumal Ogres in Fungal Wastes.
         public static Dictionary<int, List<string>> exemptEnemyTypeNamesInScene = new Dictionary<int, List<string>>
         {
-            { -1, new List<string> { "Zombie Fungus A" } }, // shrumal ogres
+            { 169, new List<string> { "Mushroom Brawler" } }, // shrumal ogres
             { 32, new List<string> { "Zote Boss" } }, // colosseum 1 - zote
             { 33, new List<string> { "Grub Mimic" } }, // colosseum 2 - grub mimic
             { 34, new List<string> { "Baby Centipede", "Mantis Traitor Lord" } }, // colosseum 3 - garpede? and traitor lord??? (I don't think we need these, but Kerr put them in so I'm not removing them)
