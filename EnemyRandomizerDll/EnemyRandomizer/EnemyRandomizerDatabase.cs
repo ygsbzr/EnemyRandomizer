@@ -1180,6 +1180,28 @@ namespace EnemyRandomizerMod
             "Grimm Boss" // as above
         };
 
+        // ghost warriors to fix essence not dropping issues
+        public static List<string> ghostWarriors = new List<string>()
+        {
+            "Ghost Warrior No Eyes",
+            "Ghost Warrior Hu",
+            "Ghost Warrior Marmu",
+            "Ghost Warrior Slug",
+            "Ghost Warrior Xero",
+            "Ghost Warrior Galien",
+            "Ghost Warrior Markoth",
+        };
+
+        // enemies with special endings that are not (currently) known to be transferable
+        public static List<string> specialEndings = new List<string>()
+        {
+            "Grimm Boss",
+            "Mage Lord",
+            "Mawlek Body",
+            "Mantis Traitor Lord"
+        };
+
+
         /*
          * 
  * 
