@@ -145,7 +145,7 @@ namespace EnemyRandomizerMod
         }
 
         //entry point into the replacement logic, started on each scene transition
-        void StartRandomEnemyLocator( Scene from, Scene to )
+        public void StartRandomEnemyLocator( Scene from, Scene to )
         {
             //"disable" the randomizer when we enter the title screen, it's enabled when a new game is started or a game is loaded
             if( to.name == Menu.RandomizerMenu.MainMenuSceneName )
