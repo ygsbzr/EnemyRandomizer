@@ -11,6 +11,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine;
 using System.Reflection;
 using HutongGames.PlayMaker.Actions;
+using HutongGames.PlayMaker;
 
 using Bounds = UnityEngine.Bounds;
 
@@ -556,6 +557,27 @@ namespace EnemyRandomizerMod
                 }
             }
 
+            // Checks if enemy has a roar, then disable the roar by skipping over the roar state
+            // Fixes the roar push out of bounds on room entry issue. Workaround until I work out how to disable the stun/push
+            PlayMakerFSM control = FSMUtility.GetFSM(newEnemy);
+            if (control != null)
+            {
+                FsmState roar = control.FsmStates.Where(state => state.Name == "Roar").FirstOrDefault();
+                
+                if (roar != null)
+                {
+                    foreach (FsmState fsmS in control.FsmStates)
+                    {
+                        foreach (FsmTransition trans in fsmS.Transitions)
+                        {
+                            if (trans.ToState == "Roar")
+                            {
+                                trans.ToState = "Roar End";
+                            }
+                        }
+                    }
+                }
+            }
 
             //put replaced enemies in a "box of doom"
             //when tied enemy is kiled, kill the replaced enemy in the box
