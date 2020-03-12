@@ -147,8 +147,10 @@ namespace EnemyRandomizerMod
         //entry point into the replacement logic, started on each scene transition
         public void StartRandomEnemyLocator( Scene from, Scene to )
         {
+            if (!EnemyRandomizerLoader.Instance.DatabaseGenerated)          // Ensure that the database is loaded to prevent possible issues with new game launch
+                return;
             //"disable" the randomizer when we enter the title screen, it's enabled when a new game is started or a game is loaded
-            if( to.name == Menu.RandomizerMenu.MainMenuSceneName )
+            if ( to.name == Menu.RandomizerMenu.MainMenuSceneName )
                 return;
 
             Dev.Log( "Transitioning FROM [" + from.name + "] TO [" + to.name + "]" );
@@ -156,6 +158,21 @@ namespace EnemyRandomizerMod
             //ignore randomizing on the menu/movie intro scenes
             if( to.buildIndex < 4 )
                 return;
+
+            if (!to.name.Contains("boss"))                                  // Prevent softlock on leaving certain boss rooms
+            {
+                for (int i = 0; i < UnityEngine.SceneManagement.SceneManager.sceneCount; i++)       // Clear out all non-active scenes to prevent room over room loading issue
+                {
+                    Scene scene = UnityEngine.SceneManagement.SceneManager.GetSceneAt(i);
+
+                    if (scene != to && scene != from)
+                    {
+                        UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(scene);
+                    }
+                }
+
+                UnityEngine.SceneManagement.SceneManager.SetActiveScene(to);
+            }
 
             Dev.Where();
             replacements.Clear();
