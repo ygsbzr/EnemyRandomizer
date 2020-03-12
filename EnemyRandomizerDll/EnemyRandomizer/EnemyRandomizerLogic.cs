@@ -40,6 +40,8 @@ namespace EnemyRandomizerMod
 
         Contractor replacementController = new Contractor();
 
+        GameObject storedEnemy = null;
+
         class ReplacementPair
         {
             public GameObject original;
@@ -485,9 +487,23 @@ namespace EnemyRandomizerMod
             GameObject replacement = GetRandomEnemyReplacement (enemy, ref randomReplacementIndex);
             ReplaceEnemy (enemy, replacement, randomReplacementIndex);
         }
+        void RecieveSpecialDeath(EnemyDeathEffects enemyDeathEffects, bool eventAlreadyReceived, ref float? attackDirection, ref bool resetDeathEvent, ref bool spellBurn, ref bool isWatery)
+        {
+            if (storedEnemy != null)
+            {
+                storedEnemy.SetActive(true);
+                storedEnemy.gameObject.GetComponent<Renderer>().enabled = false;
+                HealthManager storedHM = storedEnemy.GetComponent<HealthManager>();
+                storedHM.hp = 1;
+                storedHM.ApplyExtraDamage(1);
+            }
+        }
 
         void ReplaceEnemy( GameObject oldEnemy, GameObject replacementPrefab, int prefabIndex )
         {
+            if (storedEnemy != null)
+                storedEnemy = null;
+
             GameObject newEnemy = InstantiateEnemy(replacementPrefab,oldEnemy);
 
             //temporary, origianl name used to configure the enemy
@@ -513,8 +529,16 @@ namespace EnemyRandomizerMod
             {
                 Dev.Log( "Exception trying to activate new enemy!" + e.Message );
             }
-
+            bool needsSpecialDeathEvent = false;
+            
+            needsSpecialDeathEvent = (EnemyRandomizerDatabase.specialEndings.Contains(oldEnemy.gameObject.name)) ? true : needsSpecialDeathEvent;
+            needsSpecialDeathEvent = (EnemyRandomizerDatabase.ghostWarriors.Contains(oldEnemy.gameObject.name)) ? true : needsSpecialDeathEvent;
             //DebugPrintObjectTree( oldEnemy, true );
+            if (needsSpecialDeathEvent)
+            {
+                storedEnemy = oldEnemy;
+                ModHooks.Instance.OnReceiveDeathEventHook += RecieveSpecialDeath;
+            }
 
             oldEnemy.gameObject.name = "Rando Replaced Enemy: " + oldEnemy.gameObject.name;
 
