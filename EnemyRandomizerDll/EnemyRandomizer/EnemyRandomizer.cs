@@ -471,6 +471,11 @@ namespace EnemyRandomizerMod
 
         void CheckAndDisableLogicInMenu( Scene from, Scene to )
         {
+            if (EnemyRandomizerLoader.Instance.DatabaseGenerated)           // Force start of StartRandomEnemyLocator to prevent Item Randomizer interrupt
+            {
+                EnableEnemyRandomizer();
+                EnemyRandomizerLogic.Instance.StartRandomEnemyLocator(from, to);
+            }
             if( to.name == Menu.RandomizerMenu.MainMenuSceneName )
             {
                 DisableEnemyRandomizer();
