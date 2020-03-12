@@ -503,6 +503,15 @@ namespace EnemyRandomizerMod
             randomizerSceneProcessor = null;
 
             GameManager.instance.LoadFirstScene();
+            for (int i = 0; i < UnityEngine.SceneManagement.SceneManager.sceneCount; i++)               // Clear out extra loaded scenes to prevent inital load issue
+            {
+                Scene scene = UnityEngine.SceneManagement.SceneManager.GetSceneAt(i);
+
+                if (scene != UnityEngine.SceneManagement.SceneManager.GetActiveScene())
+                {
+                    UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(scene);
+                }
+            }
         }
 
         protected virtual bool IsDoneLoadingRandomizerData()
