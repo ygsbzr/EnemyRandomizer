@@ -505,6 +505,8 @@ namespace EnemyRandomizerMod
             if (storedEnemy != null)
                 storedEnemy = null;
 
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "Hive_04" && oldEnemy.gameObject.name == "Big Bee (3)")       // Prevents a Big Bee randomization in room where it is needed to break wall
+                return;
             GameObject newEnemy = InstantiateEnemy(replacementPrefab,oldEnemy);
 
             //temporary, origianl name used to configure the enemy
@@ -1634,7 +1636,7 @@ namespace EnemyRandomizerMod
                 Dev.Log( "Attempted replacement index: " + temp + " which is " + tempName );
                 
                 //this one is broken for now....
-                if( tempName.Contains( "Hatcher Baby" ) )
+                if(EnemyRandomizerDatabase.skipUsingAsRandomized.Contains(tempName))
                     continue;
 
                 Dev.Log( " with prefab name " + tempPrefab.name );
