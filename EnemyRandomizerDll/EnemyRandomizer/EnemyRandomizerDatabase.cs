@@ -517,7 +517,15 @@ namespace EnemyRandomizerMod
          * 
          */
 
-
+        public static List<string> skipUsingAsRandomized = new List<string>()           // prevent using these enemies as replacements
+        {
+            "Hatcher Baby",                     // In old notes as causing problems
+            "Roller",                           // Causes Exception on database check
+            "Moss Charger",                     // Causes Exception on spawn
+            "Moss Knight B",                    // In old notes as causing problems
+            "Moss Knight C",                    // In old notes as causing problems
+            "Ghost Warrior Marmu"               // Causes random hardlocks
+        };
 
 
         //effects used by enemies, like crystal guardian, or just things we can use for fun
@@ -911,7 +919,8 @@ namespace EnemyRandomizerMod
             "Crawler",
             "Ordeal Zoteling",
             "Zote Crew Normal",
-            "Zote Balloon Ordeal"
+            "Zote Balloon Ordeal",
+            "Jellyfish Baby"                // Was not in any size list, causing Fog Canyon rooms not to randomize
         };
 
         public static List<string> mediumEnemyTypeNames = new List<string>()
@@ -1179,6 +1188,28 @@ namespace EnemyRandomizerMod
             "Nightmare Grimm Boss", // totally breaks it
             "Grimm Boss" // as above
         };
+
+        // ghost warriors to fix essence not dropping issues
+        public static List<string> ghostWarriors = new List<string>()
+        {
+            "Ghost Warrior No Eyes",
+            "Ghost Warrior Hu",
+            "Ghost Warrior Marmu",
+            "Ghost Warrior Slug",
+            "Ghost Warrior Xero",
+            "Ghost Warrior Galien",
+            "Ghost Warrior Markoth",
+        };
+
+        // enemies with special endings that are not (currently) known to be transferable
+        public static List<string> specialEndings = new List<string>()
+        {
+            "Grimm Boss",
+            "Mage Lord",
+            "Mawlek Body",
+            "Mantis Traitor Lord"
+        };
+
 
         /*
          * 

@@ -32,8 +32,8 @@ namespace EnemyRandomizerMod
             "Hiveling Spawner",
             "Jellyfish Baby Inert",
             "Cap Hit",
-            "Moss Knight C",
-            "Moss Knight B",
+            //"Moss Knight C",
+            //"Moss Knight B",
             "Giant Buzzer",
             "Plant Turret Right",
             "Shell",
@@ -56,7 +56,7 @@ namespace EnemyRandomizerMod
             "Zoteling",
 
             //TEMP: remove these enemies until they're fixed
-            "Mage Lord Phase2",
+            //"Mage Lord Phase2",
             "Mega Moss Charger",
             "Dung Defender",
             "White Defender",

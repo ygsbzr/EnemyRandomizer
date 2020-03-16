@@ -448,7 +448,7 @@ namespace EnemyRandomizerMod.Menu
 
             RemoveGarbageMenuOptions();
 
-            backButton = optionsMenuScreen.defaultHighlight.FindSelectableOnUp();
+            backButton = optionsMenuScreen.defaultHighlight.FindSelectableOnUp().FindSelectableOnUp();          // Fix menu back button not closing Enemy Randomizer submenu
 
             //find a toggle-able menu element to use for our mod option prefab
             SetupMenuTogglePrefab();

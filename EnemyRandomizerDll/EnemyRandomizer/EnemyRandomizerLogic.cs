@@ -11,6 +11,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine;
 using System.Reflection;
 using HutongGames.PlayMaker.Actions;
+using HutongGames.PlayMaker;
 
 using Bounds = UnityEngine.Bounds;
 
@@ -39,6 +40,8 @@ namespace EnemyRandomizerMod
         IEnumerator randomizerReplacer = null;
 
         Contractor replacementController = new Contractor();
+
+        GameObject storedEnemy = null;
 
         class ReplacementPair
         {
@@ -145,10 +148,12 @@ namespace EnemyRandomizerMod
         }
 
         //entry point into the replacement logic, started on each scene transition
-        void StartRandomEnemyLocator( Scene from, Scene to )
+        public void StartRandomEnemyLocator( Scene from, Scene to )
         {
+            if (!EnemyRandomizerLoader.Instance.DatabaseGenerated)          // Ensure that the database is loaded to prevent possible issues with new game launch
+                return;
             //"disable" the randomizer when we enter the title screen, it's enabled when a new game is started or a game is loaded
-            if( to.name == Menu.RandomizerMenu.MainMenuSceneName )
+            if ( to.name == Menu.RandomizerMenu.MainMenuSceneName )
                 return;
 
             Dev.Log( "Transitioning FROM [" + from.name + "] TO [" + to.name + "]" );
@@ -156,6 +161,21 @@ namespace EnemyRandomizerMod
             //ignore randomizing on the menu/movie intro scenes
             if( to.buildIndex < 4 )
                 return;
+
+            if (!to.name.Contains("boss"))                                  // Prevent softlock on leaving certain boss rooms
+            {
+                for (int i = 0; i < UnityEngine.SceneManagement.SceneManager.sceneCount; i++)       // Clear out all non-active scenes to prevent room over room loading issue
+                {
+                    Scene scene = UnityEngine.SceneManagement.SceneManager.GetSceneAt(i);
+
+                    if (scene != to && scene != from)
+                    {
+                        UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(scene);
+                    }
+                }
+
+                UnityEngine.SceneManagement.SceneManager.SetActiveScene(to);
+            }
 
             Dev.Where();
             replacements.Clear();
@@ -468,9 +488,25 @@ namespace EnemyRandomizerMod
             GameObject replacement = GetRandomEnemyReplacement (enemy, ref randomReplacementIndex);
             ReplaceEnemy (enemy, replacement, randomReplacementIndex);
         }
+        void RecieveSpecialDeath(EnemyDeathEffects enemyDeathEffects, bool eventAlreadyReceived, ref float? attackDirection, ref bool resetDeathEvent, ref bool spellBurn, ref bool isWatery)
+        {
+            if (storedEnemy != null)
+            {
+                storedEnemy.SetActive(true);
+                storedEnemy.gameObject.GetComponent<Renderer>().enabled = false;
+                HealthManager storedHM = storedEnemy.GetComponent<HealthManager>();
+                storedHM.hp = 1;
+                storedHM.ApplyExtraDamage(1);
+            }
+        }
 
         void ReplaceEnemy( GameObject oldEnemy, GameObject replacementPrefab, int prefabIndex )
         {
+            if (storedEnemy != null)
+                storedEnemy = null;
+
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "Hive_04" && oldEnemy.gameObject.name == "Big Bee (3)")       // Prevents a Big Bee randomization in room where it is needed to break wall
+                return;
             GameObject newEnemy = InstantiateEnemy(replacementPrefab,oldEnemy);
 
             //temporary, origianl name used to configure the enemy
@@ -496,8 +532,16 @@ namespace EnemyRandomizerMod
             {
                 Dev.Log( "Exception trying to activate new enemy!" + e.Message );
             }
-
+            bool needsSpecialDeathEvent = false;
+            
+            needsSpecialDeathEvent = (EnemyRandomizerDatabase.specialEndings.Contains(oldEnemy.gameObject.name)) ? true : needsSpecialDeathEvent;
+            needsSpecialDeathEvent = (EnemyRandomizerDatabase.ghostWarriors.Contains(oldEnemy.gameObject.name)) ? true : needsSpecialDeathEvent;
             //DebugPrintObjectTree( oldEnemy, true );
+            if (needsSpecialDeathEvent)
+            {
+                storedEnemy = oldEnemy;
+                ModHooks.Instance.OnReceiveDeathEventHook += RecieveSpecialDeath;
+            }
 
             oldEnemy.gameObject.name = "Rando Replaced Enemy: " + oldEnemy.gameObject.name;
 
@@ -515,6 +559,27 @@ namespace EnemyRandomizerMod
                 }
             }
 
+            // Checks if enemy has a roar, then disable the roar by skipping over the roar state
+            // Fixes the roar push out of bounds on room entry issue. Workaround until I work out how to disable the stun/push
+            PlayMakerFSM control = FSMUtility.GetFSM(newEnemy);
+            if (control != null)
+            {
+                FsmState roar = control.FsmStates.Where(state => state.Name == "Roar").FirstOrDefault();
+                
+                if (roar != null)
+                {
+                    foreach (FsmState fsmS in control.FsmStates)
+                    {
+                        foreach (FsmTransition trans in fsmS.Transitions)
+                        {
+                            if (trans.ToState == "Roar")
+                            {
+                                trans.ToState = "Roar End";
+                            }
+                        }
+                    }
+                }
+            }
 
             //put replaced enemies in a "box of doom"
             //when tied enemy is kiled, kill the replaced enemy in the box
@@ -1571,7 +1636,7 @@ namespace EnemyRandomizerMod
                 Dev.Log( "Attempted replacement index: " + temp + " which is " + tempName );
                 
                 //this one is broken for now....
-                if( tempName.Contains( "Hatcher Baby" ) )
+                if(EnemyRandomizerDatabase.skipUsingAsRandomized.Contains(tempName))
                     continue;
 
                 Dev.Log( " with prefab name " + tempPrefab.name );

@@ -22,9 +22,10 @@ namespace EnemyRandomizerMod
 
         string fullVersionName = "0.3.0";
         string modRootName = "RandoRoot";
+        bool loadedGame = false;
 
         //public const bool kmode = true;
-        
+
         GameObject modRoot;
         public GameObject ModRoot {
             get {
@@ -471,9 +472,16 @@ namespace EnemyRandomizerMod
 
         void CheckAndDisableLogicInMenu( Scene from, Scene to )
         {
+            if (EnemyRandomizerLoader.Instance.DatabaseGenerated && !loadedGame)           // Force start of StartRandomEnemyLocator to prevent Item Randomizer interrupt
+            {
+                EnableEnemyRandomizer();
+                loadedGame = true;
+                EnemyRandomizerLogic.Instance.StartRandomEnemyLocator(from, to);
+            }
             if( to.name == Menu.RandomizerMenu.MainMenuSceneName )
             {
                 DisableEnemyRandomizer();
+                loadedGame = false;
             }
         }
 
@@ -505,6 +513,7 @@ namespace EnemyRandomizerMod
             {
                 GameSeed = OptionsMenuSeed;
             }
+            loadedGame = true;
 
             EnableEnemyRandomizer();
         }
@@ -519,6 +528,11 @@ namespace EnemyRandomizerMod
 
         void EnableEnemyRandomizer()
         {
+            if (!loadedGame || PlayerSettingsSeed == -1)             // Grab OptionMenuSeed on new game or if current file does not have variable in settings
+            {
+                GameSeed = OptionsMenuSeed;
+                PlayerSettingsSeed = GameSeed;
+            }
             Dev.Where();
             Tools.SetNoclip( false );
             RandomizerReady = true;
