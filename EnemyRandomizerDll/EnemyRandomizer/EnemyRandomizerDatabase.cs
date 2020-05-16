@@ -473,8 +473,8 @@ namespace EnemyRandomizerMod
              ,393
              ,395
              ,396
-             ,398
-             ,409 //hollow knight room
+             ,398	// white defender (issues?)
+             //,409 //hollow knight room
              ,407
              ,399
              ,397
