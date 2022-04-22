@@ -25,14 +25,20 @@ namespace EnemyRandomizerMod
     }
 
     //Global (non-player specific) settings
-    public class EnemyRandomizerSettings : IModSettings
+    public class EnemyRandomizerSettings
     {
+        public Dictionary<string, bool> BoolValues = new();
+        public Dictionary<string, string> StringValues = new();
+        public bool GetBool(bool b,string s)
+        {
+            if(BoolValues.TryGetValue(s, out bool flag))return flag;
+            return b;
+        }
+        public void SetBool(bool b,string s)=>BoolValues[s] = b;
         public void Reset()
         {
             BoolValues.Clear();
             StringValues.Clear();
-            IntValues.Clear();
-            FloatValues.Clear();
 
             //foreach(string s in EnemyRandomizerDatabase.enemyTypeNames )
             //{
@@ -42,62 +48,67 @@ namespace EnemyRandomizerMod
         }
 
 
-        public string SettingsVersion {
-            get => GetString( "0.0.0" );
-            set {
-                SetString( value );
-            }
-        }
+        public string SettingsVersion = "0.0.0";
 
         public bool RNGChaosMode {
-            get => GetBool( false );
+            get => GetBool( false ,EnemyRandomizerSettingsVars.RNGChaosMode);
             set {
                 StringValues[EnemyRandomizerSettingsVars.RNGChaosMode] = "Chaos Mode";
-                SetBool( value );
+                SetBool( value , EnemyRandomizerSettingsVars.RNGChaosMode);
             }
         }
-
+        public bool NoClip
+        {
+            get => GetBool(false, EnemyRandomizerSettingsVars.CheatNoclip);
+            set
+            {
+                StringValues[EnemyRandomizerSettingsVars.CheatNoclip] = "(Cheat) No Clip";
+                SetBool(value, EnemyRandomizerSettingsVars.CheatNoclip);
+            }
+        }
         public bool RNGRoomMode {
-            get => GetBool( false );
+            get => GetBool( false,EnemyRandomizerSettingsVars.RNGRoomMode );
             set {
                 StringValues[EnemyRandomizerSettingsVars.RNGRoomMode] = "Room Mode";
-                SetBool( value );
+                SetBool( value,EnemyRandomizerSettingsVars.RNGRoomMode );
             }
         }
 
         public bool RandomizeGeo {
-            get => GetBool( false );
+            get => GetBool( false,EnemyRandomizerSettingsVars.RandomizeGeo );
             set {
                 StringValues[ EnemyRandomizerSettingsVars.RandomizeGeo ] = "Randomize Geo";
-                SetBool( value );
+                SetBool( value ,EnemyRandomizerSettingsVars.RandomizeGeo);
             }
         }
 
         public bool CustomEnemies {
-            get => GetBool( false );
+            get => GetBool( false,EnemyRandomizerSettingsVars.CustomEnemies );
             set {
                 StringValues[ EnemyRandomizerSettingsVars.CustomEnemies ] = "Custom Enemies";
-                SetBool( value );
+                SetBool( value,EnemyRandomizerSettingsVars.CustomEnemies );
             }
         }
 
         public bool GodmasterEnemies {
-            get => GetBool (false);
+            get => GetBool (false,EnemyRandomizerSettingsVars.GodmasterEnemies);
             set {
                 StringValues[EnemyRandomizerSettingsVars.GodmasterEnemies] = "Godmaster Enemies";
-                SetBool (value);
+                SetBool (value,EnemyRandomizerSettingsVars.GodmasterEnemies);
             }
         }
     }
 
     //Player specific settings
-    public class EnemyRandomizerSaveSettings : IModSettings
+    public class EnemyRandomizerSaveSettings
     {
+        public Dictionary<string, string> StringValues = new();
+        private int seed;
         public int Seed {
-            get => GetInt(-1);
+            get => seed;
             set {
                 StringValues[EnemyRandomizerSettingsVars.Seed] = "Seed (Click for new)";
-                SetInt(value);
+                seed = value;
             }
         }
     }

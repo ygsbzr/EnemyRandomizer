@@ -19,10 +19,7 @@ namespace EnemyRandomizerMod.Menu
         public static RandomizerMenu Instance { get; private set; }
 
         CommunicationNode comms;
-
         static UIManager rootUIManager;
-        static RandomizerFauxUIManager optionsUIManager;
-
         static public MenuScreen optionsMenuScreen;
         static Selectable[] modOptions;
         static Selectable backButton;
@@ -56,6 +53,7 @@ namespace EnemyRandomizerMod.Menu
 
         public RandomizerMenu()
         {
+            rootUIManager = UIManager.instance;
         }
 
         public void Setup()
@@ -101,15 +99,13 @@ namespace EnemyRandomizerMod.Menu
             GameObject.Destroy( loadingBar );
             GameObject.Destroy( loadingButton );
             GameObject.Destroy( loadingRoot );
-            GameObject.Destroy( optionsUIManager );
 
             //destroys all menu items (ModOptions)
             GameObject.Destroy( optionsMenuScreen );
             modOptions = null;
             backButton = null;
 
-            optionsMenuScreen = null;
-            optionsUIManager = null;
+   
             loadingBar = null;
             loadingButton = null;
             loadingRoot = null;
@@ -128,11 +124,7 @@ namespace EnemyRandomizerMod.Menu
 
         void CreateMainMenuUIElements()
         {
-            if( rootUIManager == null )
-                return;
-
-            GameObject go = new GameObject( OptionsUIManagerName );
-            optionsUIManager = go.AddComponent<RandomizerFauxUIManager>();
+            Modding.Logger.Log("Create Menu");
 
             //Vector2 buttonPos = new Vector2( -1400f, 400f );
             //Vector2 barPos = new Vector2( -1400f, 200f );
@@ -150,6 +142,7 @@ namespace EnemyRandomizerMod.Menu
 
             //rootUIManager.gameObject.PrintSceneHierarchyTree();
 
+             rootUIManager = UIManager.instance;
             Vector3 pos = rootUIManager.gameObject.FindGameObjectInChildren( "StartGameButton" ).transform.position;
 
             loadingButton = GameObject.Instantiate(rootUIManager.gameObject.FindGameObjectInChildren( "StartGameButton" ) );
@@ -264,78 +257,18 @@ namespace EnemyRandomizerMod.Menu
 
             if( !isTitleScreen )
             {
-                ShowNonInGameOptions( false );
+               
                 return;
             }
 
             ShowRandoDatabaseUI( isTitleScreen );
-            ShowNonInGameOptions( true );
 
             //don't try to "enable" the UI after it's already "enabled"
-            if( rootUIManager == null )
-            {
-                Contractor enableUI = new Contractor( LoadOptionsMenu, 0.4f );
-                enableUI.Start();
-            }
+           
         }
 
-        void ShowNonInGameOptions( bool show )
-        {
-            //Dev.LogVar( "show",show );
-
-            if( mainMenuOnlyItems == null )
-                return;
-
-            for( int i = 0; i < mainMenuOnlyItems.Count; )
-            {
-                if( mainMenuOnlyItems[i] == null )
-                {
-                    mainMenuOnlyItems.RemoveAt( i );
-                    i = 0;
-                    continue;
-                }
-
-                mainMenuOnlyItems[i].SetActive( show );
-                ++i;
-            }
-        }
-
-        void LoadOptionsMenu()
-        {
-            try
-            {
-                if( rootUIManager != null || ModType.Instance == null || ModType.Instance.GlobalSettings == null || UIManager.instance == null ) return;
-            }
-            catch( NullReferenceException )
-            {
-                //Do Nothing.  Something inside of UIManager.instance breaks even if you try to check for null on it. 
-                return;
-            }
-
-            Dev.Log( "Creating mod options menu..." );
-
-            rootUIManager = UIManager.instance;
-
-            //TODO: for testing, disable me on releases
-            //rootUIManager.gameObject.PrintSceneHierarchyTree(true);
-
-            uiManagerCanvasRoot = rootUIManager.gameObject.FindGameObjectInChildren( "UICanvas" );
-
-            AddModMenuButtonToOptionMenu();
-
-            SetupOptionsMenu();
-
-            SetupButtonEvents();
-
-            //hack to fix an odd font bug that was scrambling the title screen text (probably due to how unity UI "handles" layout components)
-            if( uiManagerCanvasRoot != null )
-            {
-                uiManagerCanvasRoot.SetActive( false );
-
-                Contractor reEnableUI = new Contractor( ShowOptionsUI, 0.4f );
-                reEnableUI.Start();
-            }
-        }
+        
+        
 
         //TODO: add params for button text and position
         void AddModMenuButtonToOptionMenu()
@@ -433,68 +366,6 @@ namespace EnemyRandomizerMod.Menu
             GameObject.DestroyImmediate( menuTogglePrefab.GetComponent<MenuSetting>() );
         }
 
-        void SetupOptionsMenu()
-        {
-            //SETUP MOD MENU
-            InstantiateModMenuScreenGameObject();
-
-            SetMenuTitle( "Enemy Randomizer" );
-
-            InsertMenuIntoGameHierarchy();
-
-            //TODO: refactor to be more clear, this grabs the "first" menu option which
-            //will then be used as a reference point from which to setup/modify our mod's option menu
-            optionsMenuScreen.defaultHighlight = optionsMenuScreen.content.gameObject.transform.GetChild( 0 ).GetChild( 0 ).GetComponent<MenuButton>();
-
-            RemoveGarbageMenuOptions();
-
-            backButton = optionsMenuScreen.defaultHighlight.FindSelectableOnUp().FindSelectableOnUp();          // Fix menu back button not closing Enemy Randomizer submenu
-
-            //find a toggle-able menu element to use for our mod option prefab
-            SetupMenuTogglePrefab();
-
-            GameObject.DestroyImmediate( optionsMenuScreen.content.GetComponent<VerticalLayoutGroup>() ); //TEST
-            GameObject.Destroy( optionsMenuScreen.defaultHighlight.gameObject.transform.parent.gameObject );
-
-            GenerateListOfModOptions();
-
-            ((MenuSelectable)backButton).cancelAction = CancelAction.DoNothing;
-            EventTrigger backEvents = backButton.gameObject.GetComponent<EventTrigger>();
-
-            backEvents.triggers = new List<EventTrigger.Entry>();
-
-            EventTrigger.Entry backSubmit = new EventTrigger.Entry { eventID = EventTriggerType.Submit };
-            backSubmit.callback.AddListener( data => { optionsUIManager.UIquitModMenu(); } );
-            backEvents.triggers.Add( backSubmit );
-
-            EventTrigger.Entry backClick = new EventTrigger.Entry { eventID = EventTriggerType.PointerClick };
-            backClick.callback.AddListener( data => { optionsUIManager.UIquitModMenu(); } );
-            backEvents.triggers.Add( backClick );
-
-            //TODO: make work later...
-            //create scrollbar/scrollrect to use for options list
-            //scrollBar = (GameObject)GameObject.Instantiate( rootUIManager.gameObject.FindGameObjectInChildren( "AchievementsMenuScreen" ).FindGameObjectInChildren( "Scrollbar" ), optionsMenuScreen.content.transform.parent );
-            //scrollRect = (GameObject)GameObject.Instantiate( rootUIManager.gameObject.FindGameObjectInChildren( "AchievementsMenuScreen" ).FindGameObjectInChildren( "ScrollRect" ), optionsMenuScreen.content.transform.parent );
-
-            ////MenuPreventDeselect??
-            //GameObject.DestroyImmediate( scrollRect.FindGameObjectInChildren( "AchievementListUI" ) );
-
-            //optionsMenuScreen.content.transform.SetParent( scrollRect.transform );
-
-            //LayoutElement layout = optionsMenuScreen.content.gameObject.AddComponent<LayoutElement>();
-            //layout.preferredWidth = 1200;
-            //layout.preferredHeight = 1000;
-
-            //ContentSizeFitter fitter = optionsMenuScreen.content.gameObject.AddComponent<ContentSizeFitter>();
-            //fitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
-            //fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-
-            //ScrollRect sRect = scrollRect.GetComponent<ScrollRect>();
-            //sRect.verticalScrollbar = scrollBar.GetComponent<Scrollbar>();
-            
-            //SETUP MOD MENU
-        }
 
         void OnCustomSeed( string seed )
         {
@@ -503,249 +374,10 @@ namespace EnemyRandomizerMod.Menu
 
             //EnemyRandomizer.Instance.GlobalSettings.IntValues[ "CustomSeed" ] = Int32.Parse( seed );
             EnemyRandomizer.Instance.OptionsMenuSeed = Int32.Parse( seed );
-            randoSeedMenuItem.OptionList[ 0 ] = seed;
-            randoSeedMenuItem.OptionText.text = seed;
         }
 
-        RandomizerFauxMenuOptionHorizontal randoSeedMenuItem;
-        UnityEngine.UI.InputField customSeedInput = null;
 
-        List<GameObject> mainMenuOnlyItems = new List<GameObject>();
-
-        void GenerateListOfModOptions()
-        {
-            List<string> modOptions = EnemyRandomizer.Instance.GlobalSettings.BoolValues.Select( x => x.Key ).ToList();
-
-            Dev.LogVarArray( "modOptions", modOptions );
-
-            modOptions.Insert( 0, EnemyRandomizerSettingsVars.Seed ); //option 1
-            modOptions.Insert( 0, EnemyRandomizerSettingsVars.CustomSeed ); //option 0
-            modOptions.Add( EnemyRandomizerSettingsVars.CheatNoclip ); //last option
-
-            try
-            {
-                if( modOptions.Count > 0 )
-                {
-                    RandomizerMenu.modOptions = new Selectable[ modOptions.Count ];
-
-                    for( int i = 0; i < modOptions.Count; i++ )
-                    {
-                        GameObject menuItemParent = Object.Instantiate( menuTogglePrefab );
-
-                        string optionName = modOptions[ i ];
-                        string optionLabel = "No Label";
-
-                        Dev.Log( "Setting up " + optionName );
-
-                        //create input field for a custom seed -- TODO refactor this into a method to create an input field element easier
-                        if( optionName == EnemyRandomizerSettingsVars.CustomSeed )
-                        {
-                            customSeedInput = menuItemParent.AddComponent<UnityEngine.UI.InputField>();
-                            customSeedInput.textComponent = menuItemParent.transform.GetChild( 1 ).GetComponent<Text>();
-                            
-                            Text t = Object.Instantiate( customSeedInput.textComponent ) as Text;
-                            t.transform.SetParent( customSeedInput.transform );
-                            customSeedInput.placeholder = t;
-                            t.horizontalOverflow = HorizontalWrapMode.Overflow;
-                            t.text = "Click to type a custom seed";
-                            t.transform.Translate( new Vector3( 500f, 0f, 0f ) );
-
-                            customSeedInput.caretColor = Color.white;
-                            customSeedInput.contentType = InputField.ContentType.IntegerNumber;
-                            //customSeedInput.onValueChanged.AddListener( OnCustomSeed );
-                            customSeedInput.onEndEdit.AddListener( OnCustomSeed );
-                            customSeedInput.navigation = Navigation.defaultNavigation;
-                            customSeedInput.caretWidth = 8;
-                            customSeedInput.characterLimit = 11;
-
-                            ColorBlock cb = new ColorBlock
-                            {
-                                highlightedColor = Color.yellow,
-                                pressedColor = Color.red,
-                                disabledColor = Color.black,
-                                normalColor = Color.white,
-                                colorMultiplier = 2f
-                            };
-
-                            customSeedInput.colors = cb;
-
-
-                            RandomizerMenu.modOptions[ i ] = customSeedInput;
-
-                            mainMenuOnlyItems.Add( customSeedInput.gameObject );
-
-                            optionLabel = "Custom Seed";
-                            //EnemyRandomizer.Instance.GlobalSettings.StringValues.TryGetValue( "CustomSeed", out optionLabel );
-                        }
-                        else
-                        {
-                            RandomizerFauxMenuOptionHorizontal menuItem = menuItemParent.AddComponent<RandomizerFauxMenuOptionHorizontal>();
-                            menuItem.navigation = Navigation.defaultNavigation;
-                            EnemyRandomizer.Instance.GlobalSettings.StringValues.TryGetValue( optionName, out optionLabel );
-
-                            if( optionName == EnemyRandomizerSettingsVars.Seed )
-                            {
-                                randoSeedMenuItem = menuItem;
-                                mainMenuOnlyItems.Add( menuItem.gameObject );
-                                optionLabel = "Seed (Click for new)";
-                            }
-
-                            if( optionName == EnemyRandomizerSettingsVars.CheatNoclip )
-                            {
-                                optionLabel = EnemyRandomizerSettingsVars.CheatNoclip;
-                            }
-
-                            //Manages what should happen when the menu option changes (the user clicks and the mod is toggled On/Off)
-                            menuItem.OnUpdate += optionIndex =>
-                            {
-                                if( optionName == EnemyRandomizerSettingsVars.Seed )
-                                {
-                                    int seed = GameRNG.Randi();
-                                    EnemyRandomizer.Instance.OptionsMenuSeed = seed;
-
-                                    menuItem.OptionList[ 0 ] = seed.ToString();
-                                    if( customSeedInput != null )
-                                       customSeedInput.text = "";
-                                }
-                                else
-                                {
-                                    if( optionIndex == 1 )
-                                    {
-                                        if( EnemyRandomizer.Instance.GlobalSettings.BoolValues.ContainsKey(optionName) )
-                                            EnemyRandomizer.Instance.GlobalSettings.BoolValues[ optionName ] = false;
-
-                                        if( optionName == EnemyRandomizerSettingsVars.RNGChaosMode )
-                                            EnemyRandomizer.Instance.ChaosRNG = false;
-                                        if( optionName == EnemyRandomizerSettingsVars.RNGRoomMode )
-                                            EnemyRandomizer.Instance.RoomRNG = false;
-                                        if( optionName == EnemyRandomizerSettingsVars.CheatNoclip )
-                                            Tools.SetNoclip( false );
-                                        if( optionName == EnemyRandomizerSettingsVars.RandomizeGeo )
-                                            EnemyRandomizer.Instance.RandomizeGeo = false;
-                                        if( optionName == EnemyRandomizerSettingsVars.CustomEnemies )
-                                            EnemyRandomizer.Instance.CustomEnemies = false;
-                                        if (optionName == EnemyRandomizerSettingsVars.GodmasterEnemies)
-                                            EnemyRandomizer.Instance.GodmasterEnemies = false;
-
-                                    }
-                                    else
-                                    {
-                                        if( EnemyRandomizer.Instance.GlobalSettings.BoolValues.ContainsKey( optionName ) )
-                                            EnemyRandomizer.Instance.GlobalSettings.BoolValues[ optionName ] = true;
-
-                                        if( optionName == EnemyRandomizerSettingsVars.RNGChaosMode )
-                                            EnemyRandomizer.Instance.ChaosRNG = true;
-                                        if( optionName == EnemyRandomizerSettingsVars.RNGRoomMode )
-                                            EnemyRandomizer.Instance.RoomRNG = true;
-                                        if( optionName == EnemyRandomizerSettingsVars.CheatNoclip )
-                                            Tools.SetNoclip( true );
-                                        if( optionName == EnemyRandomizerSettingsVars.RandomizeGeo )
-                                            EnemyRandomizer.Instance.RandomizeGeo = true;
-                                        if( optionName == EnemyRandomizerSettingsVars.CustomEnemies )
-                                            EnemyRandomizer.Instance.CustomEnemies = true;
-                                        if (optionName == EnemyRandomizerSettingsVars.GodmasterEnemies)
-                                            EnemyRandomizer.Instance.GodmasterEnemies = true;
-                                    }
-                                }
-
-                                EnemyRandomizer.Instance.SaveGlobalSettings();
-                            };
-
-                            menuItem.OptionText = menuItem.gameObject.transform.GetChild( 1 ).GetComponent<Text>();
-                            if( optionName == EnemyRandomizerSettingsVars.Seed )
-                            {
-                                menuItem.OptionList = new[] { EnemyRandomizer.Instance.OptionsMenuSeed.ToString() };
-                                menuItem.SelectedOptionIndex = 0;
-                            }
-                            else if( optionName == EnemyRandomizerSettingsVars.CheatNoclip )
-                            {
-                                menuItem.OptionList = new[] { "On", "Off" };
-                                menuItem.SelectedOptionIndex = Tools.NoClipState ? 0 : 1;
-                            }
-                            else
-                            {
-                                menuItem.OptionList = new[] { "On", "Off" };
-                                menuItem.SelectedOptionIndex = EnemyRandomizer.Instance.GlobalSettings.BoolValues[ optionName ] ? 0 : 1;
-                            }
-
-                            menuItem.LocalizeText = false;
-                            menuItem.SheetTitle = optionName;
-                            menuItem.leftCursor = menuItem.gameObject.FindGameObjectInChildren( "CursorLeft" ).GetComponent<Animator>();
-                            menuItem.rightCursor = menuItem.gameObject.FindGameObjectInChildren( "CursorRight" ).GetComponent<Animator>();
-                            menuItem.cancelAction = CancelAction.DoNothing;
-
-                            RandomizerMenu.modOptions[ i ] = menuItem;
-                        }
-
-
-                        Object.DestroyImmediate( menuItemParent.FindGameObjectInChildren( "Label" ).GetComponent<AutoLocalizeTextUI>() );
-                        menuItemParent.FindGameObjectInChildren( "Label" ).GetComponent<Text>().text = optionLabel;
-
-                        menuItemParent.name = optionName;
-
-                        RectTransform rt = menuItemParent.GetComponent<RectTransform>();
-
-                        //rt.SetParent( scrollRect.transform );//TEST -- TODO: fix later
-                        rt.SetParent( optionsMenuScreen.content.transform );
-                        rt.localScale = new Vector3( 2, 2, 2 );
-
-                        //rt.sizeDelta = new Vector2( 960, 120 );
-                        rt.sizeDelta = new Vector2( 1200, 120 );
-                        rt.anchoredPosition = new Vector2( 0, (766 / 2) - 90 - (150 * i) );
-                        rt.anchorMin = new Vector2( 0.5f, 1.0f );
-                        rt.anchorMax = new Vector2( 0.5f, 1.0f );
-
-                        //TEST -- TODO: fix later
-                        //LayoutElement layout = RandomizerMenu.modOptions[ i ].gameObject.AddComponent<LayoutElement>();
-                        //layout.preferredWidth = 1200;
-                        //layout.preferredHeight = 120;
-                    }
-
-                    Navigation[] navs = new Navigation[ RandomizerMenu.modOptions.Length ];
-                    for( int i = 0; i < RandomizerMenu.modOptions.Length; i++ )
-                    {
-                        navs[ i ] = new Navigation
-                        {
-                            mode = Navigation.Mode.Explicit,
-                            selectOnUp = i == 0 ? backButton : RandomizerMenu.modOptions[ i - 1 ],
-                            selectOnDown = i == RandomizerMenu.modOptions.Length - 1 ? backButton : RandomizerMenu.modOptions[ i + 1 ]
-                        };
-
-                        RandomizerMenu.modOptions[ i ].navigation = navs[ i ];
-                    }
-
-                    optionsMenuScreen.defaultHighlight = RandomizerMenu.modOptions[ 1 ];
-                    Navigation nav2 = backButton.navigation;
-                    nav2.selectOnUp = RandomizerMenu.modOptions[ RandomizerMenu.modOptions.Length - 1 ];
-                    nav2.selectOnDown = RandomizerMenu.modOptions[ 1 ];
-                    backButton.navigation = nav2;
-                }
-            }
-            catch( Exception ex )
-            {
-                Dev.Log( "Exception: " + ex.Message );
-            }
-
-        }
-
-        void SetupButtonEvents()
-        {
-            Dev.Log( "About to add the events to the menu option" );
-            //SETUP MOD BUTTON TO RESPOND TO SUBMIT AND CANCEL EVENTS CORRECTLY
-            EventTrigger events = enterOptionsMenuButton.gameObject.GetComponent<EventTrigger>();
-
-            events.triggers = new List<EventTrigger.Entry>();
-
-            EventTrigger.Entry submit = new EventTrigger.Entry { eventID = EventTriggerType.Submit };
-            submit.callback.AddListener( data => { optionsUIManager.UIloadModMenu(); } );
-            events.triggers.Add( submit );
-
-            EventTrigger.Entry click = new EventTrigger.Entry { eventID = EventTriggerType.PointerClick };
-            click.callback.AddListener( data => { optionsUIManager.UIloadModMenu(); } );
-            events.triggers.Add( click );
-
-            //SETUP MOD BUTTON TO RESPOND TO SUBMIT AND CANCEL EVENTS CORRECTLY
-        }
+       
 
         static Sprite NullSprite(Vector2 size, Color32 c)
         {

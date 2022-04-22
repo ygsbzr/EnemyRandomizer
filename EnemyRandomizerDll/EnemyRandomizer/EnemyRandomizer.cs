@@ -9,12 +9,17 @@ using ModCommon;
 
 namespace EnemyRandomizerMod
 {
-    public partial class EnemyRandomizer : Mod<EnemyRandomizerSaveSettings, EnemyRandomizerSettings>, ITogglableMod
+    public partial class EnemyRandomizer : Mod, ITogglableMod,IGlobalSettings<EnemyRandomizerSettings>,ILocalSettings<EnemyRandomizerSaveSettings>,IMenuMod
     {
         public static EnemyRandomizer Instance { get; private set; }
 
         CommunicationNode comms;
-
+        public static EnemyRandomizerSettings GlobalSettings = new();
+        public static EnemyRandomizerSaveSettings Settings = new();
+        public void OnLoadGlobal(EnemyRandomizerSettings s) => GlobalSettings = s;
+        public EnemyRandomizerSettings OnSaveGlobal() => GlobalSettings;
+        public EnemyRandomizerSaveSettings OnSaveLocal() => Settings;
+        public void OnLoadLocal(EnemyRandomizerSaveSettings s) => Settings = s;
         Menu.RandomizerMenu menu;
         EnemyRandomizerLoader loader;
         EnemyRandomizerDatabase database;
@@ -156,7 +161,63 @@ namespace EnemyRandomizerMod
                 godmasterEnemies = value;
             }
         }
+        public string[] toggle = { Language.Language.Get("MOH_ON", "MainMenu"), Language.Language.Get("MOH_OFF", "MainMenu") };
+        public bool ToggleButtonInsideMenu => false;
+        public List<IMenuMod.MenuEntry> GetMenuData(IMenuMod.MenuEntry? menue)
+        {
+            List<IMenuMod.MenuEntry> data = new();
+            data.Add(new()
+            {
+                Name= "Chaos Mode",
+                Description= "Each enemy will be fully randomized with no restrictions when you enter a new room. Enemies of the same type can be changed into different things.",
+                Values=toggle,
+                Saver=i=>SaverChao(i),
+                Loader=()=>Loader(GlobalSettings.RNGChaosMode)
 
+            });
+            data.Add(new()
+            {
+                Name = "Room Mode",
+                Description = "Each enemy type will be re-randomized each time you enter a new room, but it will still change every enemy of that type.",
+                Values = toggle,
+                Saver = i => SaverRoom(i),
+                Loader = () => Loader(GlobalSettings.RNGRoomMode)
+
+            });
+            data.Add(new()
+            {
+                Name = "Randomize Geo",
+                Description = " - Randomizes amount of geo dropped by enemies",
+                Values = toggle,
+                Saver = i => SaverGeo(i),
+                Loader = () => Loader(GlobalSettings.RandomizeGeo)
+            });
+            data.Add(new()
+            {
+                Name = "Custom Enemies",
+                Description = " - Allows custom enemies to be added to the randomizer",
+                Values = toggle,
+                Saver = i => SaverCustom(i),
+                Loader = () => Loader(GlobalSettings.CustomEnemies)
+            });
+            data.Add(new()
+            {
+                Name = "Godmaster Enemies",
+                Description = " Allows enemies from the Godmaster expansion to be included in the randomizer. This includes Absolute Radiance, Pure Vessel, Winged Nosk, Mato, Oro, Sheo, Sly and Eternal Ordeal enemies.",
+                Values = toggle,
+                Saver = i => SaverGod(i),
+                Loader = () => Loader(GlobalSettings.GodmasterEnemies)
+            });
+            data.Add(new()
+            {
+                Name = "(Cheat) No Clip",
+                Description = "  - Turns on no clip - to be used in case of a bug that blocks progression by normal means, e.g. a door not opening after a boss has been killed.",
+                Values = toggle,
+                Saver = i => SaverNoClip(i),
+                Loader = () => Loader(GlobalSettings.NoClip)
+            });
+            return data;
+        }
         public override void Initialize()
         {
             if(Instance != null)
@@ -397,10 +458,10 @@ namespace EnemyRandomizerMod
             go.SetActive( true );
             return go;
         }
-
+        public void MSaveGlobal() => SaveGlobalSettings();
         void SetupDefaultSettings()
         {
-            string globalSettingsFilename = Application.persistentDataPath + ModHooks.PathSeperator + GetType().Name + ".GlobalSettings.json";
+            string globalSettingsFilename = Application.persistentDataPath + "/"+ GetType().Name + ".GlobalSettings.json";
 
             bool forceReloadGlobalSettings = false;
             if( GlobalSettings != null && GlobalSettings.SettingsVersion != EnemyRandomizerSettingsVars.GlobalSettingsVersion )
@@ -444,18 +505,33 @@ namespace EnemyRandomizerMod
             Dev.Where();
             UnityEngine.SceneManagement.SceneManager.activeSceneChanged -= CheckAndDisableLogicInMenu;
             UnityEngine.SceneManagement.SceneManager.activeSceneChanged += CheckAndDisableLogicInMenu;
-            ModHooks.Instance.AfterSavegameLoadHook += TryEnableEnemyRandomizerFromSave;
-            ModHooks.Instance.NewGameHook += EnableEnemyRandomizerFromNewGame;
-            ModHooks.Instance.SlashHitHook += DebugPrintObjectOnHit;
+            ModHooks.AfterSavegameLoadHook += TryEnableEnemyRandomizerFromSave;
+            ModHooks.NewGameHook += EnableEnemyRandomizerFromNewGame;
+            ModHooks.SlashHitHook += DebugPrintObjectOnHit;
+            On.UIManager.UIClosePauseMenu += SetNoClip;
+        }
+
+        private void SetNoClip(On.UIManager.orig_UIClosePauseMenu orig, UIManager self)
+        {
+            orig(self);
+            if(GlobalSettings.NoClip)
+            {
+                Tools.SetNoclip(true);
+            }
+            else
+            {
+                Tools.SetNoclip(false);
+            }
         }
 
         void UnRegisterCallbacks()
         {
             Dev.Where();
             UnityEngine.SceneManagement.SceneManager.activeSceneChanged -= CheckAndDisableLogicInMenu;
-            ModHooks.Instance.AfterSavegameLoadHook -= TryEnableEnemyRandomizerFromSave;
-            ModHooks.Instance.NewGameHook -= EnableEnemyRandomizerFromNewGame;
-            ModHooks.Instance.SlashHitHook -= DebugPrintObjectOnHit;
+            ModHooks.AfterSavegameLoadHook -= TryEnableEnemyRandomizerFromSave;
+            ModHooks.NewGameHook -= EnableEnemyRandomizerFromNewGame;
+            ModHooks.SlashHitHook -= DebugPrintObjectOnHit;
+            On.UIManager.UIClosePauseMenu -= SetNoClip;
         }
 
         //used while testing to record things hit by a player's nail
@@ -586,11 +662,32 @@ namespace EnemyRandomizerMod
         {
             return fullVersionName;
         }
+        public void SaverChao(int i)
+        {
+            GlobalSettings.RNGChaosMode = i == 0;
+        }
+        public void SaverRoom(int i)
+        {
+            GlobalSettings.RNGRoomMode = i == 0;
+        }
+        public void SaverGeo(int i)
+        {
+            GlobalSettings.RandomizeGeo = i == 0;
+        }
+        public void SaverGod(int i)
+        {
+            GlobalSettings.GodmasterEnemies = i == 0;
+        }
+        public void SaverCustom(int i)
+        {
+            GlobalSettings.CustomEnemies = i == 0;
+        }
+        public void SaverNoClip(int i)
+        {
+            GlobalSettings.NoClip = i == 0;
+        }
+        public int Loader(bool value)=>value? 0 : 1;
 
         //TODO: update when version checker is fixed in new modding API version
-        public override bool IsCurrent()
-        {
-            return true;        
-        }
     }
 }

@@ -112,11 +112,11 @@ namespace EnemyRandomizerMod
                 ContractorManager.Instance.StartCoroutine( debugInput );
             }
 
-            ModHooks.Instance.ColliderCreateHook -= OnLoadObjectCollider;
-            ModHooks.Instance.ColliderCreateHook += OnLoadObjectCollider;
+            ModHooks.ColliderCreateHook -= OnLoadObjectCollider;
+            ModHooks.ColliderCreateHook += OnLoadObjectCollider;
 
-            ModHooks.Instance.DrawBlackBordersHook -= OnSceneBoardersCreated;
-            ModHooks.Instance.DrawBlackBordersHook += OnSceneBoardersCreated;
+            ModHooks.DrawBlackBordersHook -= OnSceneBoardersCreated;
+            ModHooks.DrawBlackBordersHook += OnSceneBoardersCreated;
 
             UnityEngine.SceneManagement.SceneManager.activeSceneChanged -= StartRandomEnemyLocator;
             UnityEngine.SceneManagement.SceneManager.activeSceneChanged += StartRandomEnemyLocator;
@@ -141,8 +141,8 @@ namespace EnemyRandomizerMod
             comms.DisableNode();
             Instance = null;
 
-            ModHooks.Instance.ColliderCreateHook -= OnLoadObjectCollider;
-            ModHooks.Instance.DrawBlackBordersHook -= OnSceneBoardersCreated;
+            ModHooks.ColliderCreateHook -= OnLoadObjectCollider;
+            ModHooks.DrawBlackBordersHook -= OnSceneBoardersCreated;
 
             UnityEngine.SceneManagement.SceneManager.activeSceneChanged -= StartRandomEnemyLocator;
         }
@@ -540,7 +540,7 @@ namespace EnemyRandomizerMod
             if (needsSpecialDeathEvent)
             {
                 storedEnemy = oldEnemy;
-                ModHooks.Instance.OnReceiveDeathEventHook += RecieveSpecialDeath;
+                ModHooks.OnReceiveDeathEventHook += RecieveSpecialDeath;
             }
 
             oldEnemy.gameObject.name = "Rando Replaced Enemy: " + oldEnemy.gameObject.name;
